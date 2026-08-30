@@ -1,315 +1,1353 @@
-from pathlib import Path
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#10b981">
   <title>Mi Lista de la Compra</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
-      color: #0f172a;
       min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #f0fdf4, #f8fafc);
+      color: #172033;
     }
-    button, input, select { font: inherit; }
-    button { cursor: pointer; border: 0; }
-    .app { width: min(760px, calc(100% - 28px)); margin: 0 auto; padding: 34px 0 45px; }
-    .header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 720px;
+      margin: auto;
+      padding: 35px 0 50px;
+    }
+
+    /* CABECERA */
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
     .logo {
-      width: 58px; height: 58px; border-radius: 19px; display: grid; place-items: center;
-      background: #10b981; color: white; font-size: 29px; box-shadow: 0 12px 28px rgba(16,185,129,.22);
+      width: 60px;
+      height: 60px;
+      border-radius: 20px;
+      background: #10b981;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
     }
-    h1 { margin: 0; font-size: clamp(28px, 6vw, 40px); letter-spacing: -.04em; }
-    .subtitle { margin: 4px 0 0; color: #64748b; }
+
+    h1 {
+      margin: 0;
+      font-size: 35px;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      margin: 5px 0 0;
+      color: #64748b;
+    }
+
+    /* TARJETA */
+
     .card {
-      background: rgba(255,255,255,.94); border: 1px solid rgba(226,232,240,.8);
-      border-radius: 30px; padding: 22px; box-shadow: 0 20px 55px rgba(15,23,42,.08);
-      backdrop-filter: blur(10px);
+      background: white;
+      border-radius: 30px;
+      padding: 25px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
     }
-    .add-row { display: grid; grid-template-columns: 1fr auto; gap: 9px; }
-    input, select {
-      width: 100%; border: 2px solid transparent; outline: none; background: #f8fafc;
-      border-radius: 16px; padding: 13px 14px; color: #0f172a; transition: .2s;
+
+    /* AÑADIR */
+
+    .add-form {
+      display: flex;
+      gap: 10px;
     }
-    input:focus, select:focus { background: white; border-color: #6ee7b7; }
-    .add-btn {
-      background: #10b981; color: white; padding: 0 19px; border-radius: 16px; font-weight: 700;
-      box-shadow: 0 8px 18px rgba(16,185,129,.2); transition: .2s;
+
+    .product-input {
+      flex: 1;
+      min-width: 0;
+      border: 2px solid transparent;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 16px;
+      outline: none;
     }
-    .add-btn:hover { background: #059669; transform: translateY(-1px); }
-    .options { display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin-top: 10px; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 22px 0 17px; }
-    .stat { padding: 15px 17px; border-radius: 18px; background: #ecfdf5; }
-    .stat.done { background: #f8fafc; }
-    .stat-label { font-size: 13px; color: #64748b; }
-    .stat-value { font-size: 25px; font-weight: 800; margin-top: 2px; }
-    .stat:first-child .stat-value { color: #059669; }
-    .filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 15px; }
+
+    .product-input:focus {
+      background: white;
+      border-color: #6ee7b7;
+    }
+
+    .add-button {
+      border: none;
+      background: #10b981;
+      color: white;
+      padding: 0 20px;
+      border-radius: 16px;
+      font-weight: bold;
+      transition: 0.2s;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
+    }
+
+    .add-button:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    /* OPCIONES */
+
+    .options {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .option {
+      border: 2px solid transparent;
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 14px;
+      outline: none;
+    }
+
+    .option:focus {
+      border-color: #6ee7b7;
+      background: white;
+    }
+
+    /* ESTADÍSTICAS */
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 23px 0 18px;
+    }
+
+    .stat {
+      background: #ecfdf5;
+      padding: 16px;
+      border-radius: 18px;
+    }
+
+    .stat:nth-child(2) {
+      background: #f8fafc;
+    }
+
+    .stat-title {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .stat-number {
+      font-size: 27px;
+      font-weight: bold;
+      margin-top: 3px;
+      color: #059669;
+    }
+
+    .stat:nth-child(2) .stat-number {
+      color: #475569;
+    }
+
+    /* FILTROS */
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 17px;
+      flex-wrap: wrap;
+    }
+
     .filter {
-      background: #f1f5f9; color: #64748b; padding: 9px 14px; border-radius: 13px; font-weight: 650; transition: .2s;
+      border: none;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 9px 15px;
+      border-radius: 13px;
+      font-weight: bold;
+      transition: 0.2s;
     }
-    .filter.active { background: #10b981; color: white; box-shadow: 0 7px 15px rgba(16,185,129,.16); }
-    .list { display: flex; flex-direction: column; gap: 9px; }
+
+    .filter:hover {
+      background: #e2e8f0;
+    }
+
+    .filter.active {
+      background: #10b981;
+      color: white;
+      box-shadow: 0 7px 15px rgba(16, 185, 129, 0.18);
+    }
+
+    /* LISTA */
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .item {
-      border: 2px solid #f1f5f9; border-radius: 19px; padding: 13px 12px;
-      display: flex; align-items: center; gap: 11px; transition: .2s;
-      animation: appear .2s ease;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 13px;
+      border: 2px solid #f1f5f9;
+      border-radius: 19px;
+      transition: 0.2s;
+      animation: aparecer 0.2s ease;
     }
-    .item:hover { border-color: #d1fae5; box-shadow: 0 7px 18px rgba(15,23,42,.04); }
-    .item.completed { background: #f8fafc; }
+
+    .item:hover {
+      border-color: #d1fae5;
+      box-shadow: 0 7px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .item.completed {
+      background: #f8fafc;
+    }
+
     .check {
-      width: 30px; height: 30px; min-width: 30px; border-radius: 50%; display: grid; place-items: center;
-      background: transparent; color: #cbd5e1; font-size: 22px; padding: 0;
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-size: 23px;
     }
-    .completed .check { color: #10b981; }
-    .product-main { flex: 1; min-width: 0; }
-    .name { font-size: 17px; font-weight: 750; overflow-wrap: anywhere; }
-    .completed .name { color: #94a3b8; text-decoration: line-through; }
-    .meta { margin-top: 3px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; color: #94a3b8; font-size: 13px; }
-    .tag { background: #f1f5f9; padding: 4px 8px; border-radius: 8px; }
-    .actions { display: flex; gap: 3px; }
-    .icon-btn { width: 37px; height: 37px; border-radius: 12px; background: transparent; color: #94a3b8; font-size: 17px; transition: .2s; }
-    .icon-btn:hover { background: #ecfdf5; color: #059669; }
-    .icon-btn.delete:hover { background: #fff1f2; color: #f43f5e; }
-    .empty { text-align: center; padding: 45px 15px; color: #94a3b8; }
-    .empty-icon { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; background: #ecfdf5; margin: 0 auto 13px; font-size: 31px; }
-    .empty h3 { color: #475569; margin: 0; font-size: 18px; }
-    .empty p { margin: 5px 0 0; font-size: 14px; }
-    .bottom { border-top: 1px solid #f1f5f9; margin-top: 20px; padding-top: 16px; display: flex; gap: 9px; }
-    .secondary, .danger { flex: 1; padding: 11px 14px; border-radius: 14px; font-weight: 650; transition: .2s; }
-    .secondary { background: #f1f5f9; color: #64748b; }
-    .secondary:hover { background: #e2e8f0; }
-    .danger { background: #fff1f2; color: #f43f5e; }
-    .danger:hover { background: #ffe4e6; }
-    .edit-box { display: grid; grid-template-columns: 1fr 100px; gap: 8px; flex: 1; }
-    .edit-actions { display: flex; gap: 4px; }
-    .save { color: #059669; background: #ecfdf5; }
-    .cancel { color: #64748b; background: #f1f5f9; }
-    .edit-extra { grid-column: 1 / -1; display: grid; grid-template-columns: 100px 1fr; gap: 8px; }
-    .footer { text-align: center; color: #94a3b8; font-size: 13px; margin-top: 17px; }
-    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    @media (max-width: 560px) {
-      .app { width: min(100% - 18px, 760px); padding-top: 22px; }
-      .card { padding: 15px; border-radius: 24px; }
-      .header { margin-bottom: 17px; }
-      .logo { width: 50px; height: 50px; border-radius: 16px; font-size: 25px; }
-      .add-row { grid-template-columns: 1fr; }
-      .add-btn { padding: 13px; }
-      .options { grid-template-columns: 1fr 1.4fr; }
-      .bottom { flex-direction: column; }
-      .item { padding: 11px 9px; }
-      .actions .icon-btn { width: 34px; }
-      .edit-box { grid-template-columns: 1fr; }
-      .edit-actions { grid-column: 1 / -1; }
-      .edit-extra { grid-template-columns: 90px 1fr; }
+
+    .completed .check {
+      color: #10b981;
+    }
+
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-name {
+      font-size: 17px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .completed .product-name {
+      color: #94a3b8;
+      text-decoration: line-through;
+    }
+
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .category {
+      background: #f1f5f9;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 3px;
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      border: none;
+      background: transparent;
+      border-radius: 12px;
+      color: #94a3b8;
+      font-size: 18px;
+      transition: 0.2s;
+    }
+
+    .icon-button:hover {
+      background: #ecfdf5;
+      color: #059669;
+    }
+
+    .icon-button.delete:hover {
+      background: #fff1f2;
+      color: #f43f5e;
+    }
+
+    /* EDICIÓN */
+
+    .edit-container {
+      flex: 1;
+      display: grid;
+      gap: 9px;
+    }
+
+    .edit-row {
+      display: grid;
+      grid-template-columns: 1fr 100px;
+      gap: 8px;
+    }
+
+    .edit-input,
+    .edit-select {
+      width: 100%;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      padding: 11px;
+      border-radius: 13px;
+      outline: none;
+    }
+
+    .edit-input:focus,
+    .edit-select:focus {
+      border-color: #6ee7b7;
+      background: white;
+    }
+
+    .edit-buttons {
+      display: flex;
+      gap: 7px;
+    }
+
+    .save-button,
+    .cancel-button {
+      border: none;
+      padding: 9px 14px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .save-button {
+      background: #ecfdf5;
+      color: #059669;
+    }
+
+    .cancel-button {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    /* VACÍO */
+
+    .empty {
+      text-align: center;
+      padding: 45px 15px;
+      color: #94a3b8;
+    }
+
+    .empty-icon {
+      width: 65px;
+      height: 65px;
+      margin: auto auto 14px;
+      background: #ecfdf5;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .empty h3 {
+      margin: 0;
+      color: #475569;
+      font-size: 19px;
+    }
+
+    .empty p {
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    /* BOTONES INFERIORES */
+
+    .bottom-actions {
+      border-top: 1px solid #f1f5f9;
+      margin-top: 20px;
+      padding-top: 17px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .bottom-button {
+      flex: 1;
+      border: none;
+      padding: 12px;
+      border-radius: 14px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .remove-completed {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .remove-completed:hover {
+      background: #e2e8f0;
+    }
+
+    .clear-all {
+      background: #fff1f2;
+      color: #f43f5e;
+    }
+
+    .clear-all:hover {
+      background: #ffe4e6;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 18px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    @keyframes aparecer {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* MÓVIL */
+
+    @media (max-width: 550px) {
+
+      .container {
+        width: 94%;
+        padding-top: 22px;
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 25px;
+      }
+
+      .logo {
+        width: 50px;
+        height: 50px;
+        font-size: 25px;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+
+      .add-form {
+        flex-direction: column;
+      }
+
+      .add-button {
+        padding: 13px;
+      }
+
+      .options {
+        grid-template-columns: 1fr 1.4fr;
+      }
+
+      .bottom-actions {
+        flex-direction: column;
+      }
+
+      .item {
+        padding: 11px 8px;
+      }
+
+      .actions .icon-button {
+        width: 34px;
+      }
+
+      .edit-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
-  <main class="app">
+
+  <div class="container">
+
+    <!-- CABECERA -->
+
     <header class="header">
-      <div class="logo">🛒</div>
+
+      <div class="logo">
+        🛒
+      </div>
+
       <div>
         <h1>Mi lista de la compra</h1>
-        <p class="subtitle">Organiza tus compras fácilmente ✨</p>
+        <p class="subtitle">
+          Organiza tus compras fácilmente ✨
+        </p>
       </div>
+
     </header>
 
+
+    <!-- APLICACIÓN -->
+
     <section class="card">
-      <form id="addForm">
-        <div class="add-row">
-          <input id="productInput" autocomplete="off" placeholder="¿Qué necesitas comprar?" />
-          <button class="add-btn" type="submit">＋ Añadir</button>
-        </div>
-        <div class="options">
-          <input id="quantityInput" type="number" min="1" value="1" aria-label="Cantidad" />
-          <select id="categoryInput" aria-label="Categoría"></select>
-        </div>
+
+      <!-- FORMULARIO -->
+
+      <form class="add-form" id="addForm">
+
+        <input
+          id="productInput"
+          class="product-input"
+          type="text"
+          placeholder="¿Qué necesitas comprar?"
+          autocomplete="off"
+        >
+
+        <button
+          class="add-button"
+          type="submit"
+        >
+          ＋ Añadir
+        </button>
+
       </form>
 
+
+      <!-- CANTIDAD Y CATEGORÍA -->
+
+      <div class="options">
+
+        <input
+          id="quantityInput"
+          class="option"
+          type="number"
+          min="1"
+          value="1"
+          placeholder="Cantidad"
+        >
+
+        <select
+          id="categoryInput"
+          class="option"
+        ></select>
+
+      </div>
+
+
+      <!-- ESTADÍSTICAS -->
+
       <div class="stats">
+
         <div class="stat">
-          <div class="stat-label">Pendientes</div>
-          <div class="stat-value" id="pendingCount">0</div>
+
+          <div class="stat-title">
+            Pendientes
+          </div>
+
+          <div
+            class="stat-number"
+            id="pendingCount"
+          >
+            0
+          </div>
+
         </div>
-        <div class="stat done">
-          <div class="stat-label">Comprados</div>
-          <div class="stat-value" id="completedCount">0</div>
+
+
+        <div class="stat">
+
+          <div class="stat-title">
+            Comprados
+          </div>
+
+          <div
+            class="stat-number"
+            id="completedCount"
+          >
+            0
+          </div>
+
         </div>
+
       </div>
 
-      <nav class="filters" aria-label="Filtros">
-        <button class="filter active" data-filter="all">Todos</button>
-        <button class="filter" data-filter="pending">Pendientes</button>
-        <button class="filter" data-filter="completed">Comprados</button>
-      </nav>
 
-      <div class="list" id="list"></div>
+      <!-- FILTROS -->
 
-      <div class="bottom" id="bottomActions" hidden>
-        <button class="secondary" id="removeCompleted">✓ Eliminar comprados</button>
-        <button class="danger" id="clearAll">🗑 Vaciar lista</button>
+      <div class="filters">
+
+        <button
+          class="filter active"
+          data-filter="all"
+        >
+          Todos
+        </button>
+
+        <button
+          class="filter"
+          data-filter="pending"
+        >
+          Pendientes
+        </button>
+
+        <button
+          class="filter"
+          data-filter="completed"
+        >
+          Comprados
+        </button>
+
       </div>
+
+
+      <!-- LISTA -->
+
+      <div
+        class="list"
+        id="list"
+      ></div>
+
+
+      <!-- ACCIONES -->
+
+      <div
+        class="bottom-actions"
+        id="bottomActions"
+        style="display:none;"
+      >
+
+        <button
+          class="bottom-button remove-completed"
+          id="removeCompleted"
+        >
+          ✓ Eliminar comprados
+        </button>
+
+        <button
+          class="bottom-button clear-all"
+          id="clearAll"
+        >
+          🗑 Vaciar lista
+        </button>
+
+      </div>
+
     </section>
 
-    <div class="footer">Tu lista, tus compras, todo organizado 💚</div>
-  </main>
+
+    <div class="footer">
+      Tu lista, tus compras, todo organizado 💚
+    </div>
+
+  </div>
+
 
   <script>
-    const categories = ["Fruta","Verdura","Carne","Pescado","Lácteos","Panadería","Bebidas","Limpieza","Otros"];
-    const key = "mi-lista-compra-v1";
 
-    let products = JSON.parse(localStorage.getItem(key) || "null") || [
-      {id: 1, name: "Leche entera", quantity: 2, category: "Lácteos", completed: false},
-      {id: 2, name: "Pan integral", quantity: 1, category: "Panadería", completed: true},
-      {id: 3, name: "Manzanas rojas", quantity: 6, category: "Fruta", completed: false}
+    const categories = [
+      "Fruta",
+      "Verdura",
+      "Carne",
+      "Pescado",
+      "Lácteos",
+      "Panadería",
+      "Bebidas",
+      "Limpieza",
+      "Otros"
     ];
-    let filter = "all";
+
+    const STORAGE_KEY = "mi_lista_de_la_compra";
+
+
+    let products =
+      JSON.parse(localStorage.getItem(STORAGE_KEY))
+      || [];
+
+    let currentFilter = "all";
+
     let editingId = null;
 
-    const $ = id => document.getElementById(id);
-    categories.forEach(c => $("categoryInput").insertAdjacentHTML("beforeend", `<option>${c}</option>`));
 
-    function save() {
-      localStorage.setItem(key, JSON.stringify(products));
-    }
+    const productInput =
+      document.getElementById("productInput");
 
-    function render() {
-      save();
-      $("pendingCount").textContent = products.filter(p => !p.completed).length;
-      $("completedCount").textContent = products.filter(p => p.completed).length;
-      $("bottomActions").hidden = products.length === 0;
+    const quantityInput =
+      document.getElementById("quantityInput");
 
-      document.querySelectorAll(".filter").forEach(b => b.classList.toggle("active", b.dataset.filter === filter));
+    const categoryInput =
+      document.getElementById("categoryInput");
 
-      const visible = products.filter(p =>
-        filter === "all" || (filter === "pending" && !p.completed) || (filter === "completed" && p.completed)
+    const list =
+      document.getElementById("list");
+
+    const pendingCount =
+      document.getElementById("pendingCount");
+
+    const completedCount =
+      document.getElementById("completedCount");
+
+    const bottomActions =
+      document.getElementById("bottomActions");
+
+
+    /* CARGAR CATEGORÍAS */
+
+    categories.forEach(category => {
+
+      const option =
+        document.createElement("option");
+
+      option.value = category;
+
+      option.textContent = category;
+
+      categoryInput.appendChild(option);
+
+    });
+
+
+    /* GUARDAR */
+
+    function saveProducts() {
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(products)
       );
 
-      if (!visible.length) {
-        $("list").innerHTML = `<div class="empty">
-          <div class="empty-icon">🛒</div>
-          <h3>${products.length ? "No hay productos aquí" : "Tu lista está vacía"}</h3>
-          <p>${products.length ? "Prueba con otro filtro." : "Añade algo que necesites comprar."}</p>
-        </div>`;
-        return;
-      }
-
-      $("list").innerHTML = visible.map(p => editingId === p.id ? editTemplate(p) : productTemplate(p)).join("");
     }
 
-    function productTemplate(p) {
-      return `<article class="item ${p.completed ? "completed" : ""}">
-        <button class="check" onclick="toggleProduct(${p.id})" aria-label="Marcar">${p.completed ? "✓" : "○"}</button>
-        <div class="product-main">
-          <div class="name">${escapeHtml(p.name)}</div>
-          <div class="meta"><span>${p.quantity} ${p.quantity === 1 ? "unidad" : "unidades"}</span><span>•</span><span class="tag">${escapeHtml(p.category)}</span></div>
-        </div>
-        <div class="actions">
-          <button class="icon-btn" onclick="startEdit(${p.id})" aria-label="Editar">✎</button>
-          <button class="icon-btn delete" onclick="deleteProduct(${p.id})" aria-label="Eliminar">🗑</button>
-        </div>
-      </article>`;
+
+    /* ESCAPAR HTML */
+
+    function escapeHTML(text) {
+
+      const div =
+        document.createElement("div");
+
+      div.textContent = text;
+
+      return div.innerHTML;
+
     }
 
-    function editTemplate(p) {
-      return `<article class="item">
-        <div class="edit-box">
-          <input id="editName-${p.id}" value="${escapeAttr(p.name)}" autocomplete="off">
-          <input id="editQty-${p.id}" type="number" min="1" value="${p.quantity}">
-          <div class="edit-extra">
-            <select id="editCat-${p.id}">${categories.map(c => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select>
-            <div class="edit-actions">
-              <button class="icon-btn save" onclick="saveEdit(${p.id})" title="Guardar">✓</button>
-              <button class="icon-btn cancel" onclick="cancelEdit()" title="Cancelar">✕</button>
+
+    /* RENDERIZAR */
+
+    function render() {
+
+      saveProducts();
+
+
+      const pending =
+        products.filter(
+          product => !product.completed
+        ).length;
+
+
+      const completed =
+        products.filter(
+          product => product.completed
+        ).length;
+
+
+      pendingCount.textContent =
+        pending;
+
+      completedCount.textContent =
+        completed;
+
+
+      bottomActions.style.display =
+        products.length
+          ? "flex"
+          : "none";
+
+
+      document
+        .querySelectorAll(".filter")
+        .forEach(button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.filter === currentFilter
+          );
+
+        });
+
+
+      let visibleProducts =
+        products.filter(product => {
+
+          if (currentFilter === "pending")
+            return !product.completed;
+
+          if (currentFilter === "completed")
+            return product.completed;
+
+          return true;
+
+        });
+
+
+      if (visibleProducts.length === 0) {
+
+        list.innerHTML = `
+
+          <div class="empty">
+
+            <div class="empty-icon">
+              🛒
             </div>
+
+            <h3>
+              ${
+                products.length
+                  ? "No hay productos aquí"
+                  : "Tu lista está vacía"
+              }
+            </h3>
+
+            <p>
+              ${
+                products.length
+                  ? "Prueba con otro filtro."
+                  : "Añade algo que necesites comprar."
+              }
+            </p>
+
           </div>
-        </div>
-      </article>`;
+
+        `;
+
+        return;
+
+      }
+
+
+      list.innerHTML =
+        visibleProducts
+          .map(product => {
+
+            if (editingId === product.id)
+              return editTemplate(product);
+
+            return productTemplate(product);
+
+          })
+          .join("");
+
     }
 
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+    /* PRODUCTO */
+
+    function productTemplate(product) {
+
+      return `
+
+        <article
+          class="item ${
+            product.completed
+              ? "completed"
+              : ""
+          }"
+        >
+
+          <button
+            class="check"
+            onclick="toggleProduct(${product.id})"
+          >
+            ${
+              product.completed
+                ? "✓"
+                : "○"
+            }
+          </button>
+
+
+          <div class="product-info">
+
+            <div class="product-name">
+              ${escapeHTML(product.name)}
+            </div>
+
+            <div class="product-meta">
+
+              <span>
+                ${product.quantity}
+                ${
+                  product.quantity === 1
+                    ? "unidad"
+                    : "unidades"
+                }
+              </span>
+
+              <span>•</span>
+
+              <span class="category">
+                ${escapeHTML(product.category)}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="actions">
+
+            <button
+              class="icon-button"
+              onclick="startEdit(${product.id})"
+              title="Editar"
+            >
+              ✎
+            </button>
+
+            <button
+              class="icon-button delete"
+              onclick="deleteProduct(${product.id})"
+              title="Eliminar"
+            >
+              🗑
+            </button>
+
+          </div>
+
+        </article>
+
+      `;
+
     }
-    function escapeAttr(s) { return escapeHtml(s); }
 
-    window.toggleProduct = id => {
-      products = products.map(p => p.id === id ? {...p, completed: !p.completed} : p);
-      render();
-    };
 
-    window.deleteProduct = id => {
-      products = products.filter(p => p.id !== id);
-      if (editingId === id) editingId = null;
-      render();
-    };
+    /* EDITAR */
 
-    window.startEdit = id => { editingId = id; render(); setTimeout(() => $("editName-" + id)?.focus(), 0); };
-    window.cancelEdit = () => { editingId = null; render(); };
+    function editTemplate(product) {
 
-    window.saveEdit = id => {
-      const name = $("editName-" + id).value.trim();
-      const quantity = Math.max(1, Number($("editQty-" + id).value) || 1);
-      const category = $("editCat-" + id).value;
-      if (!name) return;
-      products = products.map(p => p.id === id ? {...p, name, quantity, category} : p);
-      editingId = null;
-      render();
-    };
+      return `
 
-    $("addForm").addEventListener("submit", e => {
-      e.preventDefault();
-      const name = $("productInput").value.trim();
-      if (!name) { $("productInput").focus(); return; }
-      products.unshift({
-        id: Date.now(),
-        name,
-        quantity: Math.max(1, Number($("quantityInput").value) || 1),
-        category: $("categoryInput").value,
-        completed: false
-      });
-      $("productInput").value = "";
-      $("quantityInput").value = 1;
-      render();
-      $("productInput").focus();
-    });
+        <article class="item">
 
-    document.querySelectorAll(".filter").forEach(b => b.addEventListener("click", () => {
-      filter = b.dataset.filter;
-      render();
-    }));
+          <div class="edit-container">
 
-    $("removeCompleted").addEventListener("click", () => {
-      products = products.filter(p => !p.completed);
-      render();
-    });
+            <div class="edit-row">
 
-    $("clearAll").addEventListener("click", () => {
-      if (!products.length) return;
-      if (confirm("¿Seguro que quieres eliminar toda la lista?")) {
-        products = [];
+              <input
+                id="editName-${product.id}"
+                class="edit-input"
+                value="${escapeHTML(product.name)}"
+                autocomplete="off"
+              >
+
+              <input
+                id="editQuantity-${product.id}"
+                class="edit-input"
+                type="number"
+                min="1"
+                value="${product.quantity}"
+              >
+
+            </div>
+
+
+            <select
+              id="editCategory-${product.id}"
+              class="edit-select"
+            >
+
+              ${categories.map(category => `
+
+                <option
+                  ${
+                    category === product.category
+                      ? "selected"
+                      : ""
+                  }
+                >
+                  ${category}
+                </option>
+
+              `).join("")}
+
+            </select>
+
+
+            <div class="edit-buttons">
+
+              <button
+                class="save-button"
+                onclick="saveEdit(${product.id})"
+              >
+                ✓ Guardar
+              </button>
+
+              <button
+                class="cancel-button"
+                onclick="cancelEdit()"
+              >
+                ✕ Cancelar
+              </button>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      `;
+
+    }
+
+
+    /* AÑADIR */
+
+    document
+      .getElementById("addForm")
+      .addEventListener("submit", event => {
+
+        event.preventDefault();
+
+
+        const name =
+          productInput.value.trim();
+
+
+        if (!name) {
+
+          productInput.focus();
+
+          return;
+
+        }
+
+
+        const quantity =
+          Math.max(
+            1,
+            Number(quantityInput.value) || 1
+          );
+
+
+        products.unshift({
+
+          id: Date.now(),
+
+          name: name,
+
+          quantity: quantity,
+
+          category: categoryInput.value,
+
+          completed: false
+
+        });
+
+
+        productInput.value = "";
+
+        quantityInput.value = 1;
+
+        categoryInput.value = "Otros";
+
+
         render();
-      }
-    });
 
-    $("list").addEventListener("keydown", e => {
-      if (e.key === "Enter" && e.target.id.startsWith("editName-")) {
-        saveEdit(Number(e.target.id.split("-")[1]));
+        productInput.focus();
+
+      });
+
+
+    /* MARCAR */
+
+    window.toggleProduct = function(id) {
+
+      products =
+        products.map(product => {
+
+          if (product.id === id) {
+
+            return {
+              ...product,
+              completed:
+                !product.completed
+            };
+
+          }
+
+          return product;
+
+        });
+
+
+      render();
+
+    };
+
+
+    /* ELIMINAR */
+
+    window.deleteProduct = function(id) {
+
+      products =
+        products.filter(
+          product => product.id !== id
+        );
+
+
+      render();
+
+    };
+
+
+    /* EMPEZAR EDICIÓN */
+
+    window.startEdit = function(id) {
+
+      editingId = id;
+
+      render();
+
+
+      setTimeout(() => {
+
+        const input =
+          document.getElementById(
+            "editName-" + id
+          );
+
+        if (input) {
+
+          input.focus();
+
+          input.select();
+
+        }
+
+      }, 20);
+
+    };
+
+
+    /* GUARDAR EDICIÓN */
+
+    window.saveEdit = function(id) {
+
+      const nameInput =
+        document.getElementById(
+          "editName-" + id
+        );
+
+      const quantityInputEdit =
+        document.getElementById(
+          "editQuantity-" + id
+        );
+
+      const categorySelect =
+        document.getElementById(
+          "editCategory-" + id
+        );
+
+
+      const name =
+        nameInput.value.trim();
+
+
+      if (!name)
+        return;
+
+
+      const quantity =
+        Math.max(
+          1,
+          Number(quantityInputEdit.value) || 1
+        );
+
+
+      products =
+        products.map(product => {
+
+          if (product.id === id) {
+
+            return {
+
+              ...product,
+
+              name: name,
+
+              quantity: quantity,
+
+              category:
+                categorySelect.value
+
+            };
+
+          }
+
+          return product;
+
+        });
+
+
+      editingId = null;
+
+      render();
+
+    };
+
+
+    /* CANCELAR EDICIÓN */
+
+    window.cancelEdit = function() {
+
+      editingId = null;
+
+      render();
+
+    };
+
+
+    /* FILTROS */
+
+    document
+      .querySelectorAll(".filter")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            currentFilter =
+              button.dataset.filter;
+
+            render();
+
+          }
+        );
+
+      });
+
+
+    /* ELIMINAR COMPRADOS */
+
+    document
+      .getElementById("removeCompleted")
+      .addEventListener(
+        "click",
+        () => {
+
+          products =
+            products.filter(
+              product =>
+                !product.completed
+            );
+
+          render();
+
+        }
+      );
+
+
+    /* VACIAR TODO */
+
+    document
+      .getElementById("clearAll")
+      .addEventListener(
+        "click",
+        () => {
+
+          if (!products.length)
+            return;
+
+
+          const confirmed =
+            confirm(
+              "¿Seguro que quieres eliminar toda la lista?"
+            );
+
+
+          if (confirmed) {
+
+            products = [];
+
+            render();
+
+          }
+
+        }
+      );
+
+
+    /* ENTER EN EDICIÓN */
+
+    list.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Enter" &&
+          event.target.id.startsWith(
+            "editName-"
+          )
+        ) {
+
+          const id =
+            Number(
+              event.target.id.split("-")[1]
+            );
+
+          saveEdit(id);
+
+        }
+
+
+        if (event.key === "Escape") {
+
+          cancelEdit();
+
+        }
+
       }
-      if (e.key === "Escape") cancelEdit();
-    });
+    );
+
+
+    /* INICIAR */
 
     render();
+
   </script>
+
 </body>
 </html>
-'''
-
-path = Path("/mnt/data/lista_de_la_compra.html")
-path.write_text(html, encoding="utf-8")
-print(path)
