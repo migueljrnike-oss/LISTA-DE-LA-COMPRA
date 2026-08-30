@@ -1,73 +1,315 @@
- import React, { useState, useEffect } from 'react';
-  import { motion, AnimatePresence } from 'framer-motion';
-  import {
-    Plus,
-    ShoppingBasket,
-    Trash2,
-    CheckCircle2,
-    Circle,
-    ShoppingBag,
-    ArrowRight
-  } from 'lucide-react';
+from pathlib import Path
 
-  // --- Componentes de Diseño ---
+html = r'''<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10b981">
+  <title>Mi Lista de la Compra</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
+      color: #0f172a;
+      min-height: 100vh;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; border: 0; }
+    .app { width: min(760px, calc(100% - 28px)); margin: 0 auto; padding: 34px 0 45px; }
+    .header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+    .logo {
+      width: 58px; height: 58px; border-radius: 19px; display: grid; place-items: center;
+      background: #10b981; color: white; font-size: 29px; box-shadow: 0 12px 28px rgba(16,185,129,.22);
+    }
+    h1 { margin: 0; font-size: clamp(28px, 6vw, 40px); letter-spacing: -.04em; }
+    .subtitle { margin: 4px 0 0; color: #64748b; }
+    .card {
+      background: rgba(255,255,255,.94); border: 1px solid rgba(226,232,240,.8);
+      border-radius: 30px; padding: 22px; box-shadow: 0 20px 55px rgba(15,23,42,.08);
+      backdrop-filter: blur(10px);
+    }
+    .add-row { display: grid; grid-template-columns: 1fr auto; gap: 9px; }
+    input, select {
+      width: 100%; border: 2px solid transparent; outline: none; background: #f8fafc;
+      border-radius: 16px; padding: 13px 14px; color: #0f172a; transition: .2s;
+    }
+    input:focus, select:focus { background: white; border-color: #6ee7b7; }
+    .add-btn {
+      background: #10b981; color: white; padding: 0 19px; border-radius: 16px; font-weight: 700;
+      box-shadow: 0 8px 18px rgba(16,185,129,.2); transition: .2s;
+    }
+    .add-btn:hover { background: #059669; transform: translateY(-1px); }
+    .options { display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin-top: 10px; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 22px 0 17px; }
+    .stat { padding: 15px 17px; border-radius: 18px; background: #ecfdf5; }
+    .stat.done { background: #f8fafc; }
+    .stat-label { font-size: 13px; color: #64748b; }
+    .stat-value { font-size: 25px; font-weight: 800; margin-top: 2px; }
+    .stat:first-child .stat-value { color: #059669; }
+    .filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 15px; }
+    .filter {
+      background: #f1f5f9; color: #64748b; padding: 9px 14px; border-radius: 13px; font-weight: 650; transition: .2s;
+    }
+    .filter.active { background: #10b981; color: white; box-shadow: 0 7px 15px rgba(16,185,129,.16); }
+    .list { display: flex; flex-direction: column; gap: 9px; }
+    .item {
+      border: 2px solid #f1f5f9; border-radius: 19px; padding: 13px 12px;
+      display: flex; align-items: center; gap: 11px; transition: .2s;
+      animation: appear .2s ease;
+    }
+    .item:hover { border-color: #d1fae5; box-shadow: 0 7px 18px rgba(15,23,42,.04); }
+    .item.completed { background: #f8fafc; }
+    .check {
+      width: 30px; height: 30px; min-width: 30px; border-radius: 50%; display: grid; place-items: center;
+      background: transparent; color: #cbd5e1; font-size: 22px; padding: 0;
+    }
+    .completed .check { color: #10b981; }
+    .product-main { flex: 1; min-width: 0; }
+    .name { font-size: 17px; font-weight: 750; overflow-wrap: anywhere; }
+    .completed .name { color: #94a3b8; text-decoration: line-through; }
+    .meta { margin-top: 3px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; color: #94a3b8; font-size: 13px; }
+    .tag { background: #f1f5f9; padding: 4px 8px; border-radius: 8px; }
+    .actions { display: flex; gap: 3px; }
+    .icon-btn { width: 37px; height: 37px; border-radius: 12px; background: transparent; color: #94a3b8; font-size: 17px; transition: .2s; }
+    .icon-btn:hover { background: #ecfdf5; color: #059669; }
+    .icon-btn.delete:hover { background: #fff1f2; color: #f43f5e; }
+    .empty { text-align: center; padding: 45px 15px; color: #94a3b8; }
+    .empty-icon { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; background: #ecfdf5; margin: 0 auto 13px; font-size: 31px; }
+    .empty h3 { color: #475569; margin: 0; font-size: 18px; }
+    .empty p { margin: 5px 0 0; font-size: 14px; }
+    .bottom { border-top: 1px solid #f1f5f9; margin-top: 20px; padding-top: 16px; display: flex; gap: 9px; }
+    .secondary, .danger { flex: 1; padding: 11px 14px; border-radius: 14px; font-weight: 650; transition: .2s; }
+    .secondary { background: #f1f5f9; color: #64748b; }
+    .secondary:hover { background: #e2e8f0; }
+    .danger { background: #fff1f2; color: #f43f5e; }
+    .danger:hover { background: #ffe4e6; }
+    .edit-box { display: grid; grid-template-columns: 1fr 100px; gap: 8px; flex: 1; }
+    .edit-actions { display: flex; gap: 4px; }
+    .save { color: #059669; background: #ecfdf5; }
+    .cancel { color: #64748b; background: #f1f5f9; }
+    .edit-extra { grid-column: 1 / -1; display: grid; grid-template-columns: 100px 1fr; gap: 8px; }
+    .footer { text-align: center; color: #94a3b8; font-size: 13px; margin-top: 17px; }
+    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 560px) {
+      .app { width: min(100% - 18px, 760px); padding-top: 22px; }
+      .card { padding: 15px; border-radius: 24px; }
+      .header { margin-bottom: 17px; }
+      .logo { width: 50px; height: 50px; border-radius: 16px; font-size: 25px; }
+      .add-row { grid-template-columns: 1fr; }
+      .add-btn { padding: 13px; }
+      .options { grid-template-columns: 1fr 1.4fr; }
+      .bottom { flex-direction: column; }
+      .item { padding: 11px 9px; }
+      .actions .icon-btn { width: 34px; }
+      .edit-box { grid-template-columns: 1fr; }
+      .edit-actions { grid-column: 1 / -1; }
+      .edit-extra { grid-template-columns: 90px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="logo">🛒</div>
+      <div>
+        <h1>Mi lista de la compra</h1>
+        <p class="subtitle">Organiza tus compras fácilmente ✨</p>
+      </div>
+    </header>
 
-  const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 ${className}`}>
-      {children}
-    </div>
-  );
+    <section class="card">
+      <form id="addForm">
+        <div class="add-row">
+          <input id="productInput" autocomplete="off" placeholder="¿Qué necesitas comprar?" />
+          <button class="add-btn" type="submit">＋ Añadir</button>
+        </div>
+        <div class="options">
+          <input id="quantityInput" type="number" min="1" value="1" aria-label="Cantidad" />
+          <select id="categoryInput" aria-label="Categoría"></select>
+        </div>
+      </form>
 
-  const Button = ({ children, onClick, variant = 'primary', className = "" }) => {
-    const variants = {
-      primary: "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-200",
-      secondary: "bg-slate-100 hover:bg-slate-200 text-slate-600",
-      danger: "bg-rose-50 hover:bg-rose-100 text-rose-500"
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Pendientes</div>
+          <div class="stat-value" id="pendingCount">0</div>
+        </div>
+        <div class="stat done">
+          <div class="stat-label">Comprados</div>
+          <div class="stat-value" id="completedCount">0</div>
+        </div>
+      </div>
+
+      <nav class="filters" aria-label="Filtros">
+        <button class="filter active" data-filter="all">Todos</button>
+        <button class="filter" data-filter="pending">Pendientes</button>
+        <button class="filter" data-filter="completed">Comprados</button>
+      </nav>
+
+      <div class="list" id="list"></div>
+
+      <div class="bottom" id="bottomActions" hidden>
+        <button class="secondary" id="removeCompleted">✓ Eliminar comprados</button>
+        <button class="danger" id="clearAll">🗑 Vaciar lista</button>
+      </div>
+    </section>
+
+    <div class="footer">Tu lista, tus compras, todo organizado 💚</div>
+  </main>
+
+  <script>
+    const categories = ["Fruta","Verdura","Carne","Pescado","Lácteos","Panadería","Bebidas","Limpieza","Otros"];
+    const key = "mi-lista-compra-v1";
+
+    let products = JSON.parse(localStorage.getItem(key) || "null") || [
+      {id: 1, name: "Leche entera", quantity: 2, category: "Lácteos", completed: false},
+      {id: 2, name: "Pan integral", quantity: 1, category: "Panadería", completed: true},
+      {id: 3, name: "Manzanas rojas", quantity: 6, category: "Fruta", completed: false}
+    ];
+    let filter = "all";
+    let editingId = null;
+
+    const $ = id => document.getElementById(id);
+    categories.forEach(c => $("categoryInput").insertAdjacentHTML("beforeend", `<option>${c}</option>`));
+
+    function save() {
+      localStorage.setItem(key, JSON.stringify(products));
+    }
+
+    function render() {
+      save();
+      $("pendingCount").textContent = products.filter(p => !p.completed).length;
+      $("completedCount").textContent = products.filter(p => p.completed).length;
+      $("bottomActions").hidden = products.length === 0;
+
+      document.querySelectorAll(".filter").forEach(b => b.classList.toggle("active", b.dataset.filter === filter));
+
+      const visible = products.filter(p =>
+        filter === "all" || (filter === "pending" && !p.completed) || (filter === "completed" && p.completed)
+      );
+
+      if (!visible.length) {
+        $("list").innerHTML = `<div class="empty">
+          <div class="empty-icon">🛒</div>
+          <h3>${products.length ? "No hay productos aquí" : "Tu lista está vacía"}</h3>
+          <p>${products.length ? "Prueba con otro filtro." : "Añade algo que necesites comprar."}</p>
+        </div>`;
+        return;
+      }
+
+      $("list").innerHTML = visible.map(p => editingId === p.id ? editTemplate(p) : productTemplate(p)).join("");
+    }
+
+    function productTemplate(p) {
+      return `<article class="item ${p.completed ? "completed" : ""}">
+        <button class="check" onclick="toggleProduct(${p.id})" aria-label="Marcar">${p.completed ? "✓" : "○"}</button>
+        <div class="product-main">
+          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="meta"><span>${p.quantity} ${p.quantity === 1 ? "unidad" : "unidades"}</span><span>•</span><span class="tag">${escapeHtml(p.category)}</span></div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn" onclick="startEdit(${p.id})" aria-label="Editar">✎</button>
+          <button class="icon-btn delete" onclick="deleteProduct(${p.id})" aria-label="Eliminar">🗑</button>
+        </div>
+      </article>`;
+    }
+
+    function editTemplate(p) {
+      return `<article class="item">
+        <div class="edit-box">
+          <input id="editName-${p.id}" value="${escapeAttr(p.name)}" autocomplete="off">
+          <input id="editQty-${p.id}" type="number" min="1" value="${p.quantity}">
+          <div class="edit-extra">
+            <select id="editCat-${p.id}">${categories.map(c => `<option ${c === p.category ? "selected" : ""}>${c}</option>`).join("")}</select>
+            <div class="edit-actions">
+              <button class="icon-btn save" onclick="saveEdit(${p.id})" title="Guardar">✓</button>
+              <button class="icon-btn cancel" onclick="cancelEdit()" title="Cancelar">✕</button>
+            </div>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+
+    window.toggleProduct = id => {
+      products = products.map(p => p.id === id ? {...p, completed: !p.completed} : p);
+      render();
     };
 
-    return (
-      <motion.button
-        whileTap={{ scale: 0.95 }}
-        onClick={onClick}
-        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-medium transition-colors
-  ${variants[variant]} ${className}`}
-      >
-        {children}
-      </motion.button>
-    );
-  };
+    window.deleteProduct = id => {
+      products = products.filter(p => p.id !== id);
+      if (editingId === id) editingId = null;
+      render();
+    };
 
-  // --- Aplicación Principal ---
+    window.startEdit = id => { editingId = id; render(); setTimeout(() => $("editName-" + id)?.focus(), 0); };
+    window.cancelEdit = () => { editingId = null; render(); };
 
-  export default function ShoppingListApp() {
-    const [products, setProducts] = useState([
-      { id: 1, name: 'Leche entera', completed: false },
-      { id: 2, name: 'Pan integral', completed: true },
-      { id: 3, name: 'Manzanas rojas', completed: false },
-    ]);
-    const [inputValue, setInputValue] = useState('');
+    window.saveEdit = id => {
+      const name = $("editName-" + id).value.trim();
+      const quantity = Math.max(1, Number($("editQty-" + id).value) || 1);
+      const category = $("editCat-" + id).value;
+      if (!name) return;
+      products = products.map(p => p.id === id ? {...p, name, quantity, category} : p);
+      editingId = null;
+      render();
+    };
 
-    const addProduct = (e) => {
+    $("addForm").addEventListener("submit", e => {
       e.preventDefault();
-      if (!inputValue.trim()) return;
-      const newProduct = {
+      const name = $("productInput").value.trim();
+      if (!name) { $("productInput").focus(); return; }
+      products.unshift({
         id: Date.now(),
-        name: inputValue,
-        completed: false,
-      };
-      setProducts([newProduct, ...products]);
-      setInputValue('');
-    };
+        name,
+        quantity: Math.max(1, Number($("quantityInput").value) || 1),
+        category: $("categoryInput").value,
+        completed: false
+      });
+      $("productInput").value = "";
+      $("quantityInput").value = 1;
+      render();
+      $("productInput").focus();
+    });
 
-    const toggleProduct = (id) => {
-      setProducts(products.map(p =>
-        p.id === id ? { ...p, completed: !p.completed } : p
-      ));
-    };
+    document.querySelectorAll(".filter").forEach(b => b.addEventListener("click", () => {
+      filter = b.dataset.filter;
+      render();
+    }));
 
-    const deleteProduct = (id) => {
-      setProducts(products.filter(p => p.id !== id));
-    };
+    $("removeCompleted").addEventListener("click", () => {
+      products = products.filter(p => !p.completed);
+      render();
+    });
 
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-emerald-10
+    $("clearAll").addEventListener("click", () => {
+      if (!products.length) return;
+      if (confirm("¿Seguro que quieres eliminar toda la lista?")) {
+        products = [];
+        render();
+      }
+    });
+
+    $("list").addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.id.startsWith("editName-")) {
+        saveEdit(Number(e.target.id.split("-")[1]));
+      }
+      if (e.key === "Escape") cancelEdit();
+    });
+
+    render();
+  </script>
+</body>
+</html>
+'''
+
+path = Path("/mnt/data/lista_de_la_compra.html")
+path.write_text(html, encoding="utf-8")
+print(path)
