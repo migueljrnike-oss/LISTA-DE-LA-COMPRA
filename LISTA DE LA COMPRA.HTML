@@ -1,0 +1,73 @@
+ import React, { useState, useEffect } from 'react';
+  import { motion, AnimatePresence } from 'framer-motion';
+  import {
+    Plus,
+    ShoppingBasket,
+    Trash2,
+    CheckCircle2,
+    Circle,
+    ShoppingBag,
+    ArrowRight
+  } from 'lucide-react';
+
+  // --- Componentes de Diseño ---
+
+  const Card = ({ children, className = "" }) => (
+    <div className={`bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 ${className}`}>
+      {children}
+    </div>
+  );
+
+  const Button = ({ children, onClick, variant = 'primary', className = "" }) => {
+    const variants = {
+      primary: "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-200",
+      secondary: "bg-slate-100 hover:bg-slate-200 text-slate-600",
+      danger: "bg-rose-50 hover:bg-rose-100 text-rose-500"
+    };
+
+    return (
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={onClick}
+        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-medium transition-colors
+  ${variants[variant]} ${className}`}
+      >
+        {children}
+      </motion.button>
+    );
+  };
+
+  // --- Aplicación Principal ---
+
+  export default function ShoppingListApp() {
+    const [products, setProducts] = useState([
+      { id: 1, name: 'Leche entera', completed: false },
+      { id: 2, name: 'Pan integral', completed: true },
+      { id: 3, name: 'Manzanas rojas', completed: false },
+    ]);
+    const [inputValue, setInputValue] = useState('');
+
+    const addProduct = (e) => {
+      e.preventDefault();
+      if (!inputValue.trim()) return;
+      const newProduct = {
+        id: Date.now(),
+        name: inputValue,
+        completed: false,
+      };
+      setProducts([newProduct, ...products]);
+      setInputValue('');
+    };
+
+    const toggleProduct = (id) => {
+      setProducts(products.map(p =>
+        p.id === id ? { ...p, completed: !p.completed } : p
+      ));
+    };
+
+    const deleteProduct = (id) => {
+      setProducts(products.filter(p => p.id !== id));
+    };
+
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans selection:bg-emerald-10
